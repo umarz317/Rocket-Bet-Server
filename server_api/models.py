@@ -18,6 +18,7 @@ class User(models.Model):
         MinLengthValidator(int(6), "Password should be a minimum of 6 characters"), validators.PasswordValidator],
                                 null=False)
     is_active = models.BooleanField(default=False)
+    avatar = models.IntegerField(default=0)
 
     def __str__(self):
         return self.wallet_address
@@ -35,6 +36,6 @@ class Session(models.Model):
     expiry = models.FloatField(default=time.time() + (60 * 10))
 
 
-class Progress(models.Model):
+class Chips(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    levelsCleared = models.IntegerField(default=0, null=False)
+    chips_count = models.IntegerField(default=0, null=False)

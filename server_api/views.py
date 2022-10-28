@@ -7,7 +7,7 @@ from django.http import HttpResponse, JsonResponse
 from rest_framework.generics import CreateAPIView
 from django.core.exceptions import ValidationError
 from rest_framework.decorators import api_view
-from .models import User, Auth, Session, Progress
+from .models import User, Auth, Session, Chips
 from .serializers import UserSerializer
 from . import claimprocessor
 
@@ -21,10 +21,10 @@ class SignUp(CreateAPIView):
         user = serializer.save()
         timeout = time.time() + (60 * 3)
         auth = Auth(user=user, token=token, expiry=timeout)
-        progress = Progress(user=user)
+        chips = Chips(user=user)
         if send(user.user_email, token) == 1:
             auth.save()
-            progress.save()
+            chips.save()
         else:
             user.delete()
             raise ValidationError("Email not sent")
@@ -64,18 +64,22 @@ def Login(request):
             except Exception as e:
                 print(e)
         else:
+            chips = Chips.objects.get(user=user)
             try:
                 session = Session.objects.get(user=user)
                 session.token = secrets.token_hex(16)
                 session.expiry = time.time() + (60 * 10)
                 session.save()
                 return JsonResponse(
-                    {'status': 1, 'message': 'Success', 'token': session.token, "expiry": session.expiry})
+                    {'status': 1, 'message': 'Success', 'token': session.token, "avatar": user.avatar,
+                     'chips': chips.chips_count})
             except:
                 session = Session(user=user, token=secrets.token_hex(16))
                 session.save()
                 return JsonResponse(
-                    {'status': 1, 'message': 'Success', 'token': session.token, "expiry": session.expiry})
+                    {'status': 1, 'message': 'Success', 'token': session.token, "avatar": user.avatar,
+                     'chips': chips.chips_count}
+                )
     except Exception as e:
         return JsonResponse({'status': 0, 'message': 'Invalid Credentials!'})
 
@@ -146,6 +150,7 @@ def refreshSession(request):
 
 @api_view(['POST'])
 def getLevelsCleared(request):
+    return
     token = request.POST['token']
     try:
         session = Session.objects.get(token=token)
@@ -160,6 +165,7 @@ def getLevelsCleared(request):
 
 @api_view(['POST'])
 def levelCleared(request):
+    return
     token = request.POST['token']
     try:
         session = Session.objects.get(token=token)
@@ -180,6 +186,66 @@ def levelCleared(request):
             return JsonResponse({"status": 0, "message": "Could not process reward!"})
     except Exception as e:
         return JsonResponse({"status": 0, "message": "Invalid Session Token!"})
+
+@api_view(['POST'])
+def updateAvatar(request):
+    token = request.POST['token']
+    avatar = request.POST['avatar_id']
+    try:
+        session = Session.objects.get(token=token)
+        if session.expiry >= time.time():
+            user = session.user
+            user.avatar = avatar
+            user.save()
+            return JsonResponse({"status": 1, "message": 'Avatar Updated'})
+        else:
+            return JsonResponse({"status": 0, "message": 'Session Token Expired'})
+    except:
+        return JsonResponse({"status": 0, "message": 'Invalid Session'})
+
+@api_view(['POST'])
+def updateChips(request):
+    token = request.POST['token']
+    chips = request.POST['chips']
+    try:
+        session = Session.objects.get(token=token)
+        if session.expiry >= time.time():
+            user = session.user
+            chipsObj = Chips.objects.get(user=user)
+            chipsObj.chips_count = chips
+            chipsObj.save()
+            return JsonResponse({"status": 1, "message": 'Chips Updated'})
+        else:
+            return JsonResponse({"status": 0, "message": 'Session Token Expired'})
+    except:
+        return JsonResponse({"status": 0, "message": 'Invalid Session'})
+
+@api_view(['POST'])
+def getChips(request):
+    token = request.POST['token']
+    try:
+        session = Session.objects.get(token=token)
+        if session.expiry >= time.time():
+            user = session.user
+            chips = Chips.objects.get(user=user)
+            return JsonResponse({"status": 1, "chips": chips.chips_count})
+        else:
+            return JsonResponse({"status": 0, "message": 'Session Token Expired'})
+    except:
+        return JsonResponse({"status": 0, "message": 'Invalid Session'})
+
+@api_view(['POST'])
+def getAvatar(request):
+    token = request.POST['token']
+    try:
+        session = Session.objects.get(token=token)
+        if session.expiry >= time.time():
+            user = session.user
+            return JsonResponse({"status": 1, "Avatar": user.avatar})
+        else:
+            return JsonResponse({"status": 0, "message": 'Session Token Expired'})
+    except:
+        return JsonResponse({"status": 0, "message": 'Invalid Session'})
 
 
 def send(email, token):
