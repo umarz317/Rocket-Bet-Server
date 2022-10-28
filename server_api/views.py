@@ -1,6 +1,7 @@
+import json
 import random
 import time
-import secrets
+import secrets ,requests
 
 from django.core.mail import send_mail
 from django.http import HttpResponse, JsonResponse
@@ -248,8 +249,17 @@ def getAvatar(request):
         return JsonResponse({"status": 0, "message": 'Invalid Session'})
 
 
+@api_view(['GET'])
+def getPrice(request,amount):
+    if amount==0:
+        return JsonResponse({"status": 0, "message": 'Invalid Amount!'})
+    else:
+        req = requests.get('https://api.coingecko.com/api/v3/coins/minebase')
+        amount = int(amount) * float(req.json()['tickers'][0]['last'])
+    return JsonResponse({'status':1,'value':amount})
+
 def send(email, token):
-    return send_mail("SantaFloki Auth Token", str(token), "auth@santafloki.com", recipient_list=[email])
+    return send_mail("MegaPoker Auth Token", str(token), "auth@minebase.com", recipient_list=[email])
 
 
 def generate_token():
