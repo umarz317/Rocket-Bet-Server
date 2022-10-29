@@ -1,16 +1,17 @@
-import json
 import random
+import requests
+import secrets
 import time
-import secrets ,requests
 
+from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.http import HttpResponse, JsonResponse
-from rest_framework.generics import CreateAPIView
-from django.core.exceptions import ValidationError
 from rest_framework.decorators import api_view
+from rest_framework.generics import CreateAPIView
+
+from . import claimprocessor
 from .models import User, Auth, Session, Chips
 from .serializers import UserSerializer
-from . import claimprocessor
 
 
 class SignUp(CreateAPIView):
@@ -149,43 +150,23 @@ def refreshSession(request):
         return JsonResponse({'status': 0, 'message': "Invalid Session!"})
 
 
+
 @api_view(['POST'])
-def getLevelsCleared(request):
-    return
+def claimReward(request):
     token = request.POST['token']
+    amount = request.POST['amount']
     try:
         session = Session.objects.get(token=token)
         if session.expiry <= time.time():
             return JsonResponse({'status': 0, 'message': "Token Expired!"})
         user = session.user
-        progress = Progress.objects.get(user=user)
-        return JsonResponse({"status": 1, "message": "Success", "levelsCleared": progress.levelsCleared})
-    except Exception as e:
-        return JsonResponse({"status": 0, "message": "Invalid Session Token!"})
-
-
-@api_view(['POST'])
-def levelCleared(request):
-    return
-    token = request.POST['token']
-    try:
-        session = Session.objects.get(token=token)
-        if session.expiry <= time.time():
-            return JsonResponse({'status': 0, 'message': "Token Expired!"})
-        user = session.user
-        progress = Progress.objects.get(user=user)
-        if progress.levelsCleared >= 4:
-            return JsonResponse({"status": 0, "message": "Cannot earn reward!"})
-        # result = claimprocessor.mintReward(user.wallet_address)
-        # for testing
-        result = "1"
-        if result == '1':
-            progress.levelsCleared = progress.levelsCleared + 1
-            progress.save()
-            return JsonResponse({"status": 1, "message": "NFT rewarded!"})
+        result = claimprocessor.transferReward(user.wallet_address,amount)
+        if result == 1:
+            return JsonResponse({"status": 1, "message": "Claim Rewarded!"})
         else:
             return JsonResponse({"status": 0, "message": "Could not process reward!"})
     except Exception as e:
+        print(e)
         return JsonResponse({"status": 0, "message": "Invalid Session Token!"})
 
 @api_view(['POST'])
