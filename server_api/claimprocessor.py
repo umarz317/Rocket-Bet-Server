@@ -1,19 +1,17 @@
 import json
 import os
-from django.http import HttpResponse
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
 
 # private key
-# account 1 key
-key = "0xe8d71d1e4c1c28754ad7c5938ac301c2a6512cc69b0b10bd1c9864a5bb6c1c9f"
+# account key
+key = "6879dc1dc1805ef02b5732d817040e9e55ef2f898ce3aedff63505b00590ee94"
 # rpc provider
-provider = "https://data-seed-prebsc-1-s1.binance.org:8545/"
-# provider = "https://bsc-dataseed.binance.org/"
+provider = "https://mainnet.infura.io/v3/e8d3fa6932da49eba3051b007152a8bb"
 # token address
-tokenAddress = "0xbaDC546037CF36097feCEF615909Bdf224a33a6C"
+tokenAddress = "0xbA3E5F8b4200a5eb856FF2C3E001aB29444491AA"
 # chain ID
-chain_id = 97
+chain_id = 1
 # token decimals
 decimals = 18
 
@@ -44,7 +42,7 @@ def transferReward(address, amount):
     conn.middleware_onion.inject(geth_poa_middleware, layer=0)
     contract = getTokenContract(conn)
     options = {
-        'chainId': 0x61,
+        'chainId': 0x1,
         'from': conn.eth.account.privateKeyToAccount(key).address,
         'nonce': getNonce(conn),
         'gasPrice': conn.eth.gas_price,
@@ -62,7 +60,7 @@ def transferReward(address, amount):
 def burn(burnAmount, conn):
     contract = getTokenContract(conn)
     options = {
-        'chainId': 0x61,
+        'chainId': 0x1,
         'from': conn.eth.account.privateKeyToAccount(key).address,
         'nonce': getNonce(conn),
         'gasPrice': conn.eth.gas_price,
