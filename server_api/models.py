@@ -14,6 +14,7 @@ class User(models.Model):
                                   validators=[
                                       RegexValidator('([\\w]+[.s-]{0,1})+@[A-Za-z]*(.com)', 'Email not correct!')],
                                   null=False, unique=True)
+    user_name = models.CharField(max_length=200,null=False,unique=True)
     password = models.CharField(max_length=200, validators=[
         MinLengthValidator(int(6), "Password should be a minimum of 6 characters"), validators.PasswordValidator],
                                 null=False)

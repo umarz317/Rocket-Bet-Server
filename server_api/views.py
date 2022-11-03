@@ -73,13 +73,14 @@ def Login(request):
                 session.expiry = time.time() + (60 * 10)
                 session.save()
                 return JsonResponse(
-                    {'status': 1, 'message': 'Success', 'token': session.token, "avatar": user.avatar,
+                    {'status': 1, 'message': 'Success', 'user_name': user.user_name, 'token': session.token,
+                     "avatar": user.avatar,
                      'chips': chips.chips_count})
             except:
                 session = Session(user=user, token=secrets.token_hex(16))
                 session.save()
                 return JsonResponse(
-                    {'status': 1, 'message': 'Success', 'token': session.token, "avatar": user.avatar,
+                    {'status': 1, 'message': 'Success','user_name': user.user_name, 'token': session.token, "avatar": user.avatar,
                      'chips': chips.chips_count}
                 )
     except Exception as e:
@@ -147,8 +148,7 @@ def refreshSession(request):
             return JsonResponse(
                 {'status': 1, 'message': "Session Refreshed!", 'token': session.token, 'expiry': session.expiry})
     except Exception as e:
-        return JsonResponse({'status': 0, 'message': "Invalid Session!"})
-
+        return JsonResponse({'status': -1, 'message': "Invalid Session!"})
 
 
 @api_view(['POST'])
@@ -160,7 +160,7 @@ def claimReward(request):
         if session.expiry <= time.time():
             return JsonResponse({'status': 0, 'message': "Token Expired!"})
         user = session.user
-        result = claimprocessor.transferReward(user.wallet_address,amount)
+        result = claimprocessor.transferReward(user.wallet_address, amount)
         if result == 1:
             return JsonResponse({"status": 1, "message": "Claim Rewarded!"})
         else:
@@ -168,6 +168,7 @@ def claimReward(request):
     except Exception as e:
         print(e)
         return JsonResponse({"status": 0, "message": "Invalid Session Token!"})
+
 
 @api_view(['POST'])
 def updateAvatar(request):
@@ -184,6 +185,7 @@ def updateAvatar(request):
             return JsonResponse({"status": 0, "message": 'Session Token Expired'})
     except:
         return JsonResponse({"status": 0, "message": 'Invalid Session'})
+
 
 @api_view(['POST'])
 def updateChips(request):
@@ -202,6 +204,7 @@ def updateChips(request):
     except:
         return JsonResponse({"status": 0, "message": 'Invalid Session'})
 
+
 @api_view(['POST'])
 def getChips(request):
     token = request.POST['token']
@@ -215,6 +218,7 @@ def getChips(request):
             return JsonResponse({"status": 0, "message": 'Session Token Expired'})
     except:
         return JsonResponse({"status": 0, "message": 'Invalid Session'})
+
 
 @api_view(['POST'])
 def getAvatar(request):
@@ -231,16 +235,17 @@ def getAvatar(request):
 
 
 @api_view(['GET'])
-def getPrice(request,amount):
-    if amount==0:
+def getPrice(request, amount):
+    if amount == 0:
         return JsonResponse({"status": 0, "message": 'Invalid Amount!'})
     else:
         req = requests.get('https://api.coingecko.com/api/v3/coins/minebase')
         amount = int(amount) * float(req.json()['tickers'][0]['last'])
-    return JsonResponse({'status':1,'value':amount})
+    return JsonResponse({'status': 1, 'value': amount})
+
 
 def send(email, token):
-    return send_mail("MegaPoker Auth Token", str(token), "auth@minebase.com", recipient_list=[email])
+    return send_mail("Minebase-Game Auth Token", str(token), "auth@minebase.com", recipient_list=[email])
 
 
 def generate_token():
