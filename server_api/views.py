@@ -21,7 +21,8 @@ class SignUp(CreateAPIView):
     def perform_create(self, serializer):
         token = generate_token()
         user = serializer.save()
-        timeout = time.time() + (60 * 3)
+        #6 hours
+        timeout = time.time() + (60 * 60 * 6)
         auth = Auth(user=user, token=token, expiry=timeout)
         chips = Chips(user=user)
         if send(user.user_email, token) == 1:
@@ -59,7 +60,8 @@ def Login(request):
                     token = generate_token()
                     send(user_email, token)
                     auth.token = token
-                    auth.expiry = time.time() + (3 * 60)
+                    #6 hours
+                    auth.expiry = time.time() + (60 * 60 * 6)
                     auth.save()
                     return JsonResponse(
                         {'status': -1, 'message': 'User not activated! Check email for Authorization code.'})
