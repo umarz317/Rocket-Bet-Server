@@ -14,12 +14,13 @@ class User(models.Model):
                                   validators=[
                                       RegexValidator('([\\w]+[.s-]{0,1})+@[A-Za-z]*(.com)', 'Email not correct!')],
                                   null=False, unique=True)
-    user_name = models.CharField(max_length=200,null=False,unique=True)
+    user_name = models.CharField(max_length=200, null=False, unique=True)
     password = models.CharField(max_length=200, validators=[
         MinLengthValidator(int(6), "Password should be a minimum of 6 characters"), validators.PasswordValidator],
                                 null=False)
     is_active = models.BooleanField(default=False)
     avatar = models.IntegerField(default=0)
+    reset_requested = models.BooleanField(default=False)
 
     def __str__(self):
         return self.wallet_address
@@ -40,3 +41,8 @@ class Session(models.Model):
 class Chips(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     chips_count = models.IntegerField(default=0, null=False)
+
+
+class Reset(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    token = models.IntegerField(default=0, validators=[MinLengthValidator(6, "Invalid Token!")], null=False)

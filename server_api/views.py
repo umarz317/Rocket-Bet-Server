@@ -8,9 +8,10 @@ from django.core.mail import send_mail
 from django.http import HttpResponse, JsonResponse
 from rest_framework.decorators import api_view
 from rest_framework.generics import CreateAPIView
+from .validators import PasswordValidator,LengthValidator
 
 from . import claimprocessor
-from .models import User, Auth, Session, Chips
+from .models import User, Auth, Session, Chips, Reset
 from .serializers import UserSerializer
 
 
@@ -21,7 +22,7 @@ class SignUp(CreateAPIView):
     def perform_create(self, serializer):
         token = generate_token()
         user = serializer.save()
-        #6 hours
+        # 6 hours
         timeout = time.time() + (60 * 60 * 6)
         auth = Auth(user=user, token=token, expiry=timeout)
         chips = Chips(user=user)
@@ -60,7 +61,7 @@ def Login(request):
                     token = generate_token()
                     send(user_email, token)
                     auth.token = token
-                    #6 hours
+                    # 6 hours
                     auth.expiry = time.time() + (60 * 60 * 6)
                     auth.save()
                     return JsonResponse(
@@ -82,7 +83,8 @@ def Login(request):
                 session = Session(user=user, token=secrets.token_hex(16))
                 session.save()
                 return JsonResponse(
-                    {'status': 1, 'message': 'Success','user_name': user.user_name, 'token': session.token, "avatar": user.avatar,
+                    {'status': 1, 'message': 'Success', 'user_name': user.user_name, 'token': session.token,
+                     "avatar": user.avatar,
                      'chips': chips.chips_count}
                 )
     except Exception as e:
@@ -246,8 +248,91 @@ def getPrice(request, amount):
     return JsonResponse({'status': 1, 'value': amount})
 
 
-def send(email, token):
-    return send_mail("Minebase-Game Auth Token", str(token), "auth@minebase.com", recipient_list=[email])
+@api_view(["POST"])
+def request_reset(request):
+    email = request.POST['user_email']
+    try:
+        user = User.objects.get(user_email=email)
+        token = generate_token()
+        try:
+            resetToken = Reset(user=user, token=token)
+            resetToken.save()
+        except Exception as e:
+            return JsonResponse({'status:': -1, 'message': "Reset token already sent!"})
+        send(email, token, True)
+        return JsonResponse({'status:': 1, 'message': "Reset token sent on the email."})
+    except Exception as e:
+        print(e)
+        return JsonResponse({'status:': 0, 'message': "Invalid Email!"})
+
+
+@api_view(["POST"])
+def reset_login(request):
+    token = request.POST['token']
+    try:
+        reset_obj = Reset.objects.get(token=token)
+        user = reset_obj.user
+        # set reset
+        user.reset_requested = True
+        user.save()
+        reset_obj.delete()
+        chips = Chips.objects.get(user=user)
+        # login
+        try:
+            session = Session(user=user, token=secrets.token_hex(16))
+            session.expiry = time.time() + (60 * 10)
+            session.save()
+        except Exception as e:
+            session = Session.objects.get(user=user)
+        return JsonResponse(
+            {'status': 1, 'message': 'Reset Login!', 'user_name': user.user_name, 'token': session.token,
+             "avatar": user.avatar,
+             'chips': chips.chips_count})
+    except Exception as e:
+        print(e)
+        return JsonResponse({'status:': 0, 'message': "Invalid Reset Token!"})
+
+
+@api_view(["POST"])
+def reset_password(request):
+    token = request.POST['token']
+    password = request.POST['new_password']
+    try:
+        session = Session.objects.get(token=token)
+        user = session.user
+        if not user.reset_requested:
+            return JsonResponse({'status:': 0, 'message': "User did not request password reset!"})
+        try:
+            PasswordValidator(password)
+            LengthValidator(password)
+        except ValidationError as e:
+            # print(e)
+            return JsonResponse({'status:': 0, 'message': e.message})
+        user.reset_requested = False
+        user.password = password
+        user.save()
+        return JsonResponse({'status:': 1, 'message': "Password reset!"})
+    except Exception as e:
+        print(e)
+        return JsonResponse({'status:': 0, 'message': "Invalid Session Token!"})
+
+# @api_view(["POST"])
+# def test(request):
+#     passw = request.POST['password']
+#     try:
+#         LengthValidator(passw)
+#
+#     except Exception as e:
+#         print(e)
+#         return HttpResponse('Wow')
+#     return HttpResponse('Not wow')
+
+def send(email, token, reset=False):
+    if reset:
+        return send_mail("Minebase-Game Password Reset", str(token), "reset@minebase.com", recipient_list=[email])
+
+    else:
+        return send_mail("Minebase-Game Auth Token", str(token), "auth@minebase.com", recipient_list=[email])
 
 
 def generate_token():
