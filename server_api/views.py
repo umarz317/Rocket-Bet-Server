@@ -258,12 +258,12 @@ def request_reset(request):
             resetToken = Reset(user=user, token=token)
             resetToken.save()
         except Exception as e:
-            return JsonResponse({'status:': -1, 'message': "Reset token already sent!"})
+            return JsonResponse({'status': -1, 'message': "Reset token already sent!"})
         send(email, token, True)
-        return JsonResponse({'status:': 1, 'message': "Reset token sent on the email."})
+        return JsonResponse({'status': 1, 'message': "Reset token sent on the email."})
     except Exception as e:
         print(e)
-        return JsonResponse({'status:': 0, 'message': "Invalid Email!"})
+        return JsonResponse({'status': 0, 'message': "Invalid Email!"})
 
 
 @api_view(["POST"])
@@ -290,7 +290,7 @@ def reset_login(request):
              'chips': chips.chips_count})
     except Exception as e:
         print(e)
-        return JsonResponse({'status:': 0, 'message': "Invalid Reset Token!"})
+        return JsonResponse({'status': 0, 'message': "Invalid Reset Token!"})
 
 
 @api_view(["POST"])
@@ -301,20 +301,20 @@ def reset_password(request):
         session = Session.objects.get(token=token)
         user = session.user
         if not user.reset_requested:
-            return JsonResponse({'status:': 0, 'message': "User did not request password reset!"})
+            return JsonResponse({'status': 0, 'message': "User did not request password reset!"})
         try:
             PasswordValidator(password)
             LengthValidator(password)
         except ValidationError as e:
             # print(e)
-            return JsonResponse({'status:': 0, 'message': e.message})
+            return JsonResponse({'status': 0, 'message': e.message})
         user.reset_requested = False
         user.password = password
         user.save()
-        return JsonResponse({'status:': 1, 'message': "Password reset!"})
+        return JsonResponse({'status': 1, 'message': "Password reset!"})
     except Exception as e:
         print(e)
-        return JsonResponse({'status:': 0, 'message': "Invalid Session Token!"})
+        return JsonResponse({'status': 0, 'message': "Invalid Session Token!"})
 
 # @api_view(["POST"])
 # def test(request):
