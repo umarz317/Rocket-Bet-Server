@@ -1,3 +1,4 @@
+import json
 import random
 import requests
 import secrets
@@ -164,7 +165,11 @@ def claimReward(request):
         if session.expiry <= time.time():
             return JsonResponse({'status': 0, 'message': "Token Expired!"})
         user = session.user
-        result = claimprocessor.transferReward(user.wallet_address, amount)
+        try:
+            result = claimprocessor.transferReward(user.wallet_address, amount)
+        except Exception as e:
+            print(e)
+            return JsonResponse({"status": 0, "message": str(e).split(',')[1].split(':')[1].split('\'')[1]})
         if result == 1:
             return JsonResponse({"status": 1, "message": "Claim Rewarded!"})
         else:
