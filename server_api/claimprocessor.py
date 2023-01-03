@@ -47,7 +47,7 @@ def transferReward(address, amount):
         'nonce': getNonce(conn),
         'gasPrice': conn.eth.gas_price,
     }
-    burnAmount, transferAmount = getAmounts(int(amount))
+    burnAmount, transferAmount = getAmounts(int(amount.split('.')[0]))
     tx = contract.functions.transfer(Web3.toChecksumAddress(address),int(transferAmount)).build_transaction(options)
     signedTx = conn.eth.account.sign_transaction(tx, key)
     txHash = conn.eth.send_raw_transaction(signedTx.rawTransaction)
