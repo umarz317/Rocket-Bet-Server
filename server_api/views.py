@@ -168,7 +168,7 @@ def claimReward(request):
         try:
             result = claimprocessor.transferReward(user.wallet_address, amount)
         except Exception as e:
-            print(e)
+            print(e,'wow')
             return JsonResponse({"status": 0, "message": str(e).split(',')[1].split(':')[1].split('\'')[1]})
         if result == 1:
             return JsonResponse({"status": 1, "message": "Claim Rewarded!"})
