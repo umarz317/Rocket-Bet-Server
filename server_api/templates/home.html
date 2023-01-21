@@ -1,0 +1,22 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dirty-Dogs Server</title>
+</head>
+<style>
+    @font-face {
+        font-family: myFont;
+        src:url({% static 'Minecraft.ttf' %});
+    }
+</style>
+<div style="width: 100%;height: 100vh;display: flex;align-items:center; justify-content: center;">
+    <div style="position: relative">
+    <img style=" width: 550px;height: 450px" src="{%  static 'logo.jpeg' %}"/>
+    <h1 style="position: absolute;right: -110px;bottom: 0;font-family: myFont">Server Running</h1>
+    <img style="bottom: 56px;right:90px;position: absolute ;width: 50px;height: 50px" src="{%  static 'server.gif' %}"/>
+    </div>
+</div>
+</body>
+</html>

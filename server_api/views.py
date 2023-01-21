@@ -7,6 +7,7 @@ import time
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.http import HttpResponse, JsonResponse
+from django.template import loader
 from rest_framework.decorators import api_view
 from rest_framework.generics import CreateAPIView
 from .validators import PasswordValidator,LengthValidator
@@ -349,4 +350,5 @@ def generate_token():
 
 
 def home(request):
-    return HttpResponse("Server!")
+    template = loader.get_template('home.html')
+    return HttpResponse(template.render())
