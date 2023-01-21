@@ -5,7 +5,7 @@ from web3.middleware import geth_poa_middleware
 
 # private key
 # account key
-key = "6879dc1dc1805ef02b5732d817040e9e55ef2f898ce3aedff63505b00590ee94"
+key = ""
 # rpc provider
 provider = "https://mainnet.infura.io/v3/e8d3fa6932da49eba3051b007152a8bb"
 # token address
