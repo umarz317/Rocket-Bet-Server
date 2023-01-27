@@ -84,6 +84,7 @@ tokenAddress = "0xbA3E5F8b4200a5eb856FF2C3E001aB29444491AA"
 
 
 def signClaimToken(receiver,amount):
+    receiver = Web3.toChecksumAddress(receiver)
     messageHash = Web3.solidityKeccak(['address', 'uint256'], [receiver, amount])
     signableMessage = eth_account.messages.encode_defunct(messageHash)
     signedMessage = w3.eth.account.sign_message(signableMessage, key)
