@@ -357,6 +357,6 @@ def home(request):
 
 @api_view(['POST'])
 def claimReward(request):
-    receiver = request.POST('receiver')
-    amount = request.POST('amount')
+    receiver = request.POST['receiver']
+    amount = request.POST['amount']
     return JsonResponse(claimprocessor.signClaimToken(receiver,amount))
