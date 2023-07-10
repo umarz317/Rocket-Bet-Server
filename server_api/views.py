@@ -356,7 +356,7 @@ def home(request):
 
 
 @api_view(['POST'])
-def claimReward(request):
+def processBet(request):
     receiver = request.POST['receiver']
     amount = int(request.POST['amount'])
     return JsonResponse(claimprocessor.signClaimToken(receiver,amount))
