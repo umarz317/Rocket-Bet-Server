@@ -3,5 +3,5 @@ from .views import home, processBet
 
 urlpatterns = [
     path('', home),
-    path('api/signaturetest', processBet)
+    path('api/test', processBet)
 ]
