@@ -7,7 +7,8 @@ from web3.auto import w3
 key = os.getenv('PK')
 print(key)
 
-def signClaimToken(receiver, amount):
+
+def processBet(receiver, amount):
     receiver = Web3.toChecksumAddress(receiver)
     messageHash = Web3.solidityKeccak(['address', 'uint256'], [receiver, amount])
     signableMessage = eth_account.messages.encode_defunct(messageHash)
