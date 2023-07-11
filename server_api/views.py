@@ -13,5 +13,6 @@ def home(request):
 @api_view(['POST'])
 def processBet(request):
     receiver = request.POST['receiver']
-    amount = int(request.POST['amount'])
-    return JsonResponse(bet_processor.processBet(receiver, amount))
+    amount = (request.POST['amount'])
+    tx_hash = request.POST['tx_hash']
+    return JsonResponse(bet_processor.processBet(receiver, amount, tx_hash))
