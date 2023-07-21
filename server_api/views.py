@@ -15,4 +15,5 @@ def processBet(request):
     receiver = request.POST['receiver']
     amount = (request.POST['amount'])
     tx_hash = request.POST['tx_hash']
-    return JsonResponse(bet_processor.processBet(receiver, amount, tx_hash))
+    multiplier = request.POST['multiplier']
+    return JsonResponse(bet_processor.processBet(receiver, amount, multiplier, tx_hash))

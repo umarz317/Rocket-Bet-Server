@@ -8,11 +8,11 @@ import os
 
 # private key
 key = os.getenv('PK')
-
+print(key)
 rewarder_contract_address = Web3.to_checksum_address('0x878dcf237992bbe92421e00291d928097af759b3')
 contract_creation_block = Web3.to_hex(37815830)
 
-with open('rewarder_abi.json') as file:
+with open(os.path.abspath(os.path.join(os.path.abspath(__file__), '../')) + '/rewarder_abi.json') as file:
     rewarder_abi = json.load(file)
 
 
@@ -48,22 +48,23 @@ def tx_hash_reuse_check(tx_hash):
 
 
 def get_cutoff(amount, multiplier):
-    k = random.randint(1, 100)
+    k = random.randint(1, 50)
     rand = ''.join(random.choices(string.ascii_uppercase, k=k))
     hashed = hash(rand)
-    cutoff = random.randrange(80, 2000) / (hashed * (amount * multiplier) * 0.2)
+    cutoff = random.randrange(60, 200) / (hashed * (amount * multiplier) * 0.2)
     cutoff = str(cutoff).split('.')
     cutoff = float(cutoff[0] + '.' + cutoff[1][1:3])
-    cutoff = max([1, cutoff])
+    cutoff = max([random.random()+2.2, cutoff])
     print(cutoff)
     return cutoff
 
 
 def processBet(receiver, amount, multiplier, tx_hash):
+    print(receiver, amount, multiplier, tx_hash)
     w3 = init_web3()
     if tx_hash_reuse_check(tx_hash):
-        cutoff = get_cutoff(amount, multiplier)
-        if cutoff > multiplier:
+        cutoff = get_cutoff(float(amount), float(multiplier))
+        if cutoff > float(multiplier):
             receiver = Web3.to_checksum_address(receiver)
             messageHash = Web3.solidity_keccak(['address', 'uint256', 'string'], [receiver, int(amount), tx_hash])
             signableMessage = eth_account.messages.encode_defunct(messageHash)
@@ -75,10 +76,12 @@ def processBet(receiver, amount, multiplier, tx_hash):
                                       signedMessage.v).replace('0x', ''), 'response': 'won', 'cutoff': cutoff}
             return responseDictionary
         else:
-            return {'response': 'busted'}
+            return {'response': 'busted', 'cutoff': cutoff}
     else:
         return {'response': 'Invalid tx_hash'}
 
 
 def to_32byte_hex(val):
     return Web3.to_hex(Web3.to_bytes(val).rjust(32, b'\0'))
+
+# get_cutoff(10)
