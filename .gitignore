@@ -1,2 +1,4 @@
 db.sqlite3
 env.txt
+.DS_Store
+server_api/.DS_Store
